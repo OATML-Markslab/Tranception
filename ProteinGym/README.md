@@ -1,10 +1,23 @@
+# ProteinGym
+
 ProteinGym is an extensive set of Deep Mutational Scanning (DMS) assays curated to enable thorough comparisons of various mutation effect predictors indifferent regimes. ProteinGym is comprised of two benchmarks: 1) a substitution benchmark which consists of the experimental characterisation of ∼1.5M missense variants across 87 DMS assays 2) an indel benchmark that includes ∼300k mutants across 7 DMS assays.
 
 ## Downloading ProteinGym
 
+To download the substitution benchmark:
 ```
 curl -o ProteinGym_substitutions.zip https://marks.hms.harvard.edu/ProteinGym/ProteinGym_substitutions.zip 
+unzip ProteinGym_substitutions.zip
+rm ProteinGym_substutions.zip
 ```
+
+Similarly, to download the indel benchmark:
+```
+curl -o ProteinGym_indels.zip https://marks.hms.harvard.edu/ProteinGym/ProteinGym_indels.zip
+unzip ProteinGym_indels.zip
+rm ProteinGym_indels.zip
+```
+
 
 ## ProteinGym reference file explanations
 
