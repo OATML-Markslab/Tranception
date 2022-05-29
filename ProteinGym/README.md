@@ -43,7 +43,7 @@ Next, we detail the meaning of each column in the ProteinGym reference files. Ce
 - perc_cov: Percentage of positions of the MSA that had a coverage higher than 70% (less than 30% gaps).
 - num_cov: Number of positions of the MSA that had a coverage higher than 70% (less than 30% gaps).
 - N_eff: The effective number of sequences in the MSA defined as the sum of the different sequence weights.
-- N_eff_L: Neff/num_cov
+- N_eff_L: Neff/num_cov.
 - num_significant: Number of evolutionary couplings that are considered significant. Significance is defined by having more than 90% probability of belonging to the log-normal distribution in a Gaussian Mixture Model of normal and log-normal distributions.
 - num_significant_L: num_significant/num_cov.
 - DMS_binarization_cutoff_ProteinGym: Cutoff used to divide fitness scores into binary labels.
