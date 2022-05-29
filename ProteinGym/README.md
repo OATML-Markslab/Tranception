@@ -22,16 +22,16 @@ rm ProteinGym_indels.zip
 
 In the reference files, we provide abundant information about each DMS in ProteinGym. There are two reference files: one for the substitution benchmark and one for the indel benchmark.
 
-Next, we detail the meaning of each column in the ProteinGym reference files. Certain columns (indicated between brackets) only apply to original datasets, and not to the final datasets, while certain other columns only apply to substitions and not to indels.
+Next, we detail the meaning of each column in the ProteinGym reference files. Certain columns (indicated between brackets) only apply to raw DMS files, and not to the final datasets, while certain other columns only apply to substitions and not to indels.
 
 - DMS_id: Maps every DMS assay in a unique manner. It comprises the UniProt ID of the mutated protein, the first author name and the year of publication. If there are several datasets with those same characteristics, another defining word is added.
-- DMS_filename_raw (only for original datasets): Name of the DMS file in the set of original datasets. Note that these are not DMS filenames in ProteinGym, since ProteinGym filenames take the form of DMS_id.csv.
+- DMS_filename_raw (only for raw DMS files): Name of the DMS file in the set of raw DMS files. Note that these are not DMS filenames in the final ProteinGym, since ProteinGym filenames always take the form of DMS_id.csv.
 - in_DeepSequence_benchmark: indicates whether the DMS was present in the previous DeepSequence benchmark set.
 - multi_AA_mutants: indicates whether the DMS contains multi amino acid mutants (more than singles).
 - MSA_filename: name of the Multiple Sequence Alignment that the prediction models used to make predictions for this DMS.
-- DMS_phenotype_name (only for original datasets): name of the column in the original dataset that we used as fitness score.
-- DMS_directionality (only for original datasets): Direction of the correlation between the DMS_phenotype column values and the protein fitness in the original datasets (directly or inversely correlated). In any given DMS, if the higher the phenotype value, the more fit the mutant is, then directionality is 1. On the other hand, if the lower the phenotype value, the less fit the mutation is, directionality is -1. In the final ProteinGym, all DMS_directionalities are 1 because we multiplied all fitness scores by -1 if the directionality was -1, thereby inverting its directionality.
-- DMS_mutant_column (only for original datasets): 
+- DMS_phenotype_name (only for raw DMS files): name of the column in the raw DMS that we used as fitness score.
+- DMS_directionality (only for raw DMS files): Direction of the correlation between the DMS_phenotype column values and the protein fitness in the raw DMS (directly or inversely correlated). In any given DMS, if the higher the phenotype value, the more fit the mutant is, then directionality is 1. On the other hand, if the lower the phenotype value, the less fit the mutation is, directionality is -1. In the final ProteinGym, all DMS_directionalities are 1 because we multiplied all fitness scores by -1 if the directionality was -1, thereby inverting its directionality.
+- DMS_mutant_column (only for raw DMS files): Name of the column in the raw DMS that indicates which mutants were assayed. 
 - region_mutated: Region of the target protein that is mutated in the DMS.
 - target_seq: sequence of the target protein.
 - seq_len: Lenght of the target protein sequence.
