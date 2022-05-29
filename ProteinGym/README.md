@@ -25,7 +25,7 @@ In the reference files, we provide abundant information about each DMS in Protei
 Next, we detail the meaning of each column in the ProteinGym reference files. Certain columns (indicated between brackets) only apply to original datasets, and not to the final datasets, while certain other columns only apply to substitions and not to indels.
 
 - DMS_id: Maps every DMS assay in a unique manner. It comprises the UniProt ID of the mutated protein, the first author name and the year of publication. If there are several datasets with those same characteristics, another defining word is added.
-- DMS_filename (only for original datasets): Name of the DMS file in the set of original datasets. Note that these are not DMS filenames in ProteinGym, since ProteinGym filenames take the form of DMS_id.csv.
+- DMS_filename_raw (only for original datasets): Name of the DMS file in the set of original datasets. Note that these are not DMS filenames in ProteinGym, since ProteinGym filenames take the form of DMS_id.csv.
 - in_DeepSequence_benchmark: indicates whether the DMS was present in the previous DeepSequence benchmark set.
 - multi_AA_mutants: indicates whether the DMS contains multi amino acid mutants (more than singles).
 - MSA_filename: name of the Multiple Sequence Alignment that the prediction models used to make predictions for this DMS.
