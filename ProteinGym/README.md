@@ -8,7 +8,7 @@ To download the substitution benchmark:
 ```
 curl -o ProteinGym_substitutions.zip https://marks.hms.harvard.edu/ProteinGym/ProteinGym_substitutions.zip 
 unzip ProteinGym_substitutions.zip
-rm ProteinGym_substutions.zip
+rm ProteinGym_substitutions.zip
 ```
 
 Similarly, to download the indel benchmark:
