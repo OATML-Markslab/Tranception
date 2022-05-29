@@ -31,7 +31,7 @@ Next, we detail the meaning of each column in the ProteinGym reference files. Ce
 - MSA_filename: name of the Multiple Sequence Alignment that the prediction models used to make predictions for this DMS.
 - DMS_phenotype_name (only for raw DMS files): name of the column in the raw DMS that we used as fitness score.
 - DMS_directionality (only for raw DMS files): Direction of the correlation between the DMS_phenotype column values and the protein fitness in the raw DMS (directly or inversely correlated). In any given DMS, if the higher the phenotype value, the more fit the mutant is, then directionality is 1. On the other hand, if the lower the phenotype value, the less fit the mutation is, directionality is -1. In the final ProteinGym, all DMS_directionalities are 1 because we multiplied all fitness scores by -1 if the directionality was -1, thereby inverting its directionality.
-- DMS_mutant_column (only for raw DMS files): Name of the column in the raw DMS that indicates which mutants were assayed. 
+- DMS_mutant_column (only for raw DMS files): Name of the column in the raw DMS that indicates which mutants were assayed. In the final ProteinGym, this column is always called "mutant". 
 - region_mutated: Region of the target protein that is mutated in the DMS.
 - target_seq: sequence of the target protein.
 - seq_len: Lenght of the target protein sequence.
