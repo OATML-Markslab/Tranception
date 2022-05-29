@@ -18,10 +18,11 @@ unzip ProteinGym_indels.zip
 rm ProteinGym_indels.zip
 ```
 
+## ProteinGym reference files
 
-## ProteinGym reference file explanations
+In the reference files, we provide abundant information about each DMS in ProteinGym. There are two reference files: one for the substitution benchmark and one for the indel benchmark.
 
-Next, we detail the meaning of each column in the DMS mapping spreadsheet. Certain columns (indicated between brackets) only apply to original datasets, and not to the final datasets, while certain other columns only apply to substitions and not to indels.
+Next, we detail the meaning of each column in the ProteinGym reference files. Certain columns (indicated between brackets) only apply to original datasets, and not to the final datasets, while certain other columns only apply to substitions and not to indels.
 
 - DMS_id: Maps every DMS assay in a unique manner. It comprises the UniProt ID of the mutated protein, the first author name and the year of publication. If there are several datasets with those same characteristics, another defining word is added.
 - DMS_filename (only for original datasets): Name of the DMS file in the set of original datasets. Note that these are not DMS filenames in ProteinGym, since ProteinGym filenames take the form of DMS_id.csv.
@@ -51,3 +52,24 @@ Next, we detail the meaning of each column in the DMS mapping spreadsheet. Certa
 - singles (only for substitutions): number of single amino acid substitutions in the DMS.
 - doubles (only for substitutions): number of double amino acid substitutions in the DMS.
 - multiples (only for substitutions): number of multiple amino acid substitutions in the DMS.
+
+## Downloading raw DMS files
+
+We additionally provide the raw, unprocessed DMS files.
+
+To download substitution raw DMS files:
+
+```
+curl -o substitutions_raw_DMS.zip https://marks.hms.harvard.edu/ProteinGym/substitutions_raw_DMS.zip
+unzip substitutions_raw_DMS.zip
+rm substitutions_raw_DMS.zip
+```
+
+Similarly, to download indel raw DMS files:
+
+```
+curl -o indels_raw_DMS.zip https://marks.hms.harvard.edu/ProteinGym/indels_raw_DMS.zip
+unzip indels_raw_DMS.zip
+rm indels_raw_DMS.zip
+```
+
