@@ -11,6 +11,18 @@ Coming soon!
 ## ProteinGym
 ProteinGym is an extensive set of Deep Mutational Scanning (DMS) assays curated to enable thorough comparisons of various mutation effect predictors indifferent regimes. ProteinGym is comprised of two benchmarks: 1) a substitution benchmark which consists of the experimental characterisation of ∼1.5M missense variants across 87 DMS assays 2) an indel benchmark that includes ∼300k mutants across 7 DMS assays.
 
+Each processed file in each benchmark corresponds to a single DMS assay, and contains the following three variables:
+- mutant (str): 
+    - for the substitution benchmark, it describes the set of substitutions to apply on the reference sequence to obtain the mutated sequence (eg., A1P:D2N implies the amino acid 'A' at position 1 should be replaced by 'P', and 'D' at position 2 should be replaced by 'N')
+    - for the indel benchmark, it corresponds to the full mutated sequence
+- DMS_score (float): corresponds to the experimental measurement in the DMS assay. Across all assays, the higher the DMS_score value, the higher the fitness of the mutated protein
+- binary_label (bool): indicates whether the DMS_score is above the fitness cutoff (1 is fit, 0 is not fit)
+
+Additionally, we provide reference files in the [ProteinGym folder](https://github.com/OATML-Markslab/Tranception/tree/main/ProteinGym) that give further details on each assay and contain in particular:
+- The UniProt_ID of the corresponding protein, along with taxon and MSA depth category
+- The target sequence (target_seq) used in the assay
+- Details on how the DMS_score was created from the raw files and how it was binarized 
+
 To download the substitution benchmark:
 ```
 curl -o ProteinGym_substitutions.zip https://marks.hms.harvard.edu/ProteinGym/ProteinGym_substitutions.zip 

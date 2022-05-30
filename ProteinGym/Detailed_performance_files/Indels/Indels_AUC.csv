@@ -1,0 +1,9 @@
+DMS_id,Tranception_no_retrieval_score,Tranception_retrieval_score,Wavenet_score,Ensemble_wavenet_tranception_no_retrieval,Ensemble_wavenet_tranception_retrieval,number_mutants
+A0A1J4YT16_9PROT_Davidi_2020,0.624,0.637,0.577,0.631,0.619,105
+B1LPA6_ECOSM_Russ_2020,0.691,0.743,0.730,0.750,0.754,3074
+BLAT_ECOLX_indels,0.642,0.677,0.757,0.736,0.752,4751
+PTEN_HUMAN_Mighell_2018_deletions,0.832,0.859,0.889,0.901,0.914,314
+CAPSD_AAV2S_Sinai_2021_indels,0.769,0.789,0.708,0.738,0.747,250907
+HIS7_YEAST_Pokusaeva_2019_indels,0.954,0.946,0.937,0.952,0.949,6102
+P53_HUMAN_Kotler_2018_deletions,0.666,0.662,0.467,0.567,0.570,341
+Average,0.740,0.759,0.724,0.754,0.758,-
