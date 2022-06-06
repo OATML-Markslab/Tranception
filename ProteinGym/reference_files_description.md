@@ -13,6 +13,7 @@ The meaning of each column in the ProteinGym reference files is provided below:
 - DMS_binarization_cutoff_ProteinGym (float): Cutoff used to divide fitness scores into binary labels.
 - DMS_binarization_method (str): Method used to decide the binarization cutoff (manual or median).
 - region_mutated (str): Region of the target protein that is mutated in the DMS.
+- MSA_filename (str): Name of the MSA file generated based on the reference sequence mutated during the DMS experiment. Note that different reference sequences may be used in different DMS experiments for the same protein. For example, Giacomelli et al. (2018) and Kotler et al. (2018) used slightly different reference sequences in their respective DMS experiments for the P53 protein. We generated different MSAs accordingly.
 - MSA_start (int): Locates the beginning of the first sequence in the MSA with respect to the target sequence. For example, if the MSA covers from position 10 to position 60 of the target sequence, then MSA_start is 10.
 - MSA_end (int): Locates the end of the first sequence in the MSA with respect to the target sequence. For example, if the MSA covers from position 10 to position 60 of the target sequence, then MSA_end is 60.
 - MSA_bitscore (float): Bitscore threshold used to generate the alignment divided by the length of the target protein.
@@ -26,7 +27,7 @@ The meaning of each column in the ProteinGym reference files is provided below:
 - MSA_num_significant_L (float): MSA_num_significant / num_cov.
 - raw_DMS_filename (str): Name of the raw DMS file that contains the assay.
 - raw_DMS_phenotype_name (str): Name of the column in the raw DMS that we used as fitness score.
-- raw_DMS_directionality (int): Direction of the correlation between the DMS_phenotype column values and the protein fitness in the raw DMS (directly or inversely correlated). In any given DMS, the directionality is 1 if higher values of the measurement are associated with higher fitness, and -1 otherwise. For simplicity, we adjusted directionality in the final ProteinGym benchmarks so that a higher value of DMS_score is always associated with higher fitness. Therefore, in the final ProteinGym, directionality is always 1.
+- raw_DMS_directionality (int): Sign of the correlation between the DMS_phenotype column values and protein fitness in the raw DMS files. In any given DMS, the directionality is 1 if higher values of the measurement are associated with higher fitness, and -1 otherwise. For simplicity, we adjusted directionality in the final ProteinGym benchmarks so that a higher value of DMS_score is always associated with higher fitness. Consequently, correlations between model scores and the final DMS_score values should always be positive (unless the predictions from the considered model are worse than random for that DMS).
 - raw_DMS_mutant_column (str): Name of the column in the raw DMS that indicates which mutants were assayed.
 
 ## Raw DMS assays files
@@ -51,9 +52,7 @@ rm indels_raw_DMS.zip
 
 ## Multiple Sequence Alignments (MSAs)
 
-Finally, we provide the MSAs we used to make predictions with Tranception with retrieval (and other prediction models that use MSAs).
-
-To download MSAs:
+The MSAs used to train alignment-based methods or used at inference in Tranception with retrieval and MSA Transformer may be downloaded as follows:
 
 ```
 curl -o MSA_ProteinGym.tar.gz https://marks.hms.harvard.edu/ProteinGym/MSA_ProteinGym.tar.gz
