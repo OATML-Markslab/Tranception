@@ -55,7 +55,7 @@ rm indels_raw_DMS.zip
 The MSAs used to train alignment-based methods or used at inference in Tranception with retrieval and MSA Transformer may be downloaded as follows:
 
 ```
-curl -o MSA_ProteinGym.tar.gz https://marks.hms.harvard.edu/ProteinGym/MSA_ProteinGym.tar.gz
-tar xzvf MSA_ProteinGym.tar.gz
-rm MSA_ProteinGym.tar.gz
+curl -o MSA_ProteinGym.zip https://marks.hms.harvard.edu/ProteinGym/MSA_ProteinGym.zip
+unzip MSA_ProteinGym.zip
+rm MSA_ProteinGym.zip
 ```
