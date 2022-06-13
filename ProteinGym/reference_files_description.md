@@ -4,6 +4,7 @@ In the reference files, we provide detailed information about all DMS assays inc
 
 The meaning of each column in the ProteinGym reference files is provided below:
 - DMS_id (str): Uniquely identifies each DMS assay in ProteinGym. It is obtained as the concatenation of the UniProt ID of the mutated protein, the first author name and the year of publication. If there are several datasets with the same characteristics, another defining attribute of the assay is added to preserve unicity.
+- DMS_filename (str): Name of the processed DMS file.
 - target_seq (str): Sequence of the target protein (reference sequence mutated in the assay).
 - seq_len (int): Length of the target protein sequence.
 - includes_multiple_mutants (bool): Indicates whether the DMS contains mutations that are multiple mutants. Substitution benchmark only.
@@ -25,7 +26,7 @@ The meaning of each column in the ProteinGym reference files is provided below:
 - MSA_N_eff_L (float): Neff / num_cov.
 - MSA_num_significant (int): Number of evolutionary couplings that are considered significant. Significance is defined by having more than 90% probability of belonging to the log-normal distribution in a Gaussian Mixture Model of normal and log-normal distributions.
 - MSA_num_significant_L (float): MSA_num_significant / num_cov.
-- raw_DMS_filename (str): Name of the raw DMS file that contains the assay.
+- raw_DMS_filename (str): Name of the raw DMS file.
 - raw_DMS_phenotype_name (str): Name of the column in the raw DMS that we used as fitness score.
 - raw_DMS_directionality (int): Sign of the correlation between the DMS_phenotype column values and protein fitness in the raw DMS files. In any given DMS, the directionality is 1 if higher values of the measurement are associated with higher fitness, and -1 otherwise. For simplicity, we adjusted directionality in the final ProteinGym benchmarks so that a higher value of DMS_score is always associated with higher fitness. Consequently, correlations between model scores and the final DMS_score values should always be positive (unless the predictions from the considered model are worse than random for that DMS).
 - raw_DMS_mutant_column (str): Name of the column in the raw DMS that indicates which mutants were assayed.
@@ -48,14 +49,4 @@ Similarly, to download indel raw DMS files:
 curl -o indels_raw_DMS.zip https://marks.hms.harvard.edu/ProteinGym/indels_raw_DMS.zip
 unzip indels_raw_DMS.zip
 rm indels_raw_DMS.zip
-```
-
-## Multiple Sequence Alignments (MSAs)
-
-The MSAs used to train alignment-based methods or used at inference in Tranception with retrieval and MSA Transformer may be downloaded as follows:
-
-```
-curl -o MSA_ProteinGym.zip https://marks.hms.harvard.edu/ProteinGym/MSA_ProteinGym.zip
-unzip MSA_ProteinGym.zip
-rm MSA_ProteinGym.zip
 ```

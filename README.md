@@ -16,7 +16,7 @@ Each processed file in each benchmark corresponds to a single DMS assay, and con
     - for the substitution benchmark, it describes the set of substitutions to apply on the reference sequence to obtain the mutated sequence (eg., A1P:D2N implies the amino acid 'A' at position 1 should be replaced by 'P', and 'D' at position 2 should be replaced by 'N')
     - for the indel benchmark, it corresponds to the full mutated sequence
 - DMS_score (float): corresponds to the experimental measurement in the DMS assay. Across all assays, the higher the DMS_score value, the higher the fitness of the mutated protein
-- binary_label (bool): indicates whether the DMS_score is above the fitness cutoff (1 is fit, 0 is not fit)
+- DMS_score_bin (int): indicates whether the DMS_score is above the fitness cutoff (1 is fit, 0 is not fit)
 
 Additionally, we provide reference files in the [ProteinGym folder](https://github.com/OATML-Markslab/Tranception/tree/main/ProteinGym) that give further details on each assay and contain in particular:
 - The UniProt_ID of the corresponding protein, along with taxon and MSA depth category
@@ -38,6 +38,15 @@ rm ProteinGym_indels.zip
 ```
 
 The [ProteinGym folder](https://github.com/OATML-Markslab/Tranception/tree/main/ProteinGym) also includes detailed performance files for Tranception and other baselines on the two ProteinGym benchmarks.
+
+## Multiple Sequence Alignments (MSAs)
+
+The MSAs used to train alignment-based methods or used at inference in Tranception with retrieval and MSA Transformer may be downloaded as follows:
+```
+curl -o MSA_ProteinGym.zip https://marks.hms.harvard.edu/ProteinGym/MSA_ProteinGym.zip
+unzip MSA_ProteinGym.zip
+rm MSA_ProteinGym.zip
+```
 
 ## Reference
 If you use Tranception or ProteinGym in your work, please cite the following paper:
