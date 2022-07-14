@@ -1,0 +1,29 @@
+name: tranception_env
+channels:
+  - pytorch
+  - conda-forge
+  - anaconda
+  - defaults
+  - pypi
+dependencies:
+  - python=3.8
+  - numpy=1.22
+  - pandas=1.4
+  - scipy=1.8
+  - scikit-learn=1.0
+  - tqdm
+  - pip
+  - sentry-sdk=1.3.1
+  - pytorch=1.9.1
+  - cudatoolkit=10.2
+  - biopython=1.78
+  - pip:
+      - wandb==0.12.11
+      - transformers==4.17
+      - tokenizers==0.11.6
+      - datasets==1.18.3
+      - aiohttp==3.8
+      - sentencepiece==0.1.96
+      - jax==0.3.0
+      - flax==0.4.0
+      - optax
