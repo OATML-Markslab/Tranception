@@ -19,6 +19,7 @@ def main():
     parser.add_argument('--DMS_reference_file_path', type=str, help='Reference file with list of DMSs to consider')
     parser.add_argument('--DMS_data_folder', type=str, help='Path to folder that contains all DMS datasets')
     parser.add_argument('--indel_mode', action='store_true', help='Whether to score sequences with insertions and deletions')
+    parser.add_argument('--performance_by_depth', action='store_true', help='Whether to compute performance by mutation depth')
     args = parser.parse_args()
     
     mapping_protein_seq_DMS = pd.read_csv(args.DMS_reference_file_path)
@@ -37,7 +38,7 @@ def main():
         score_file = pd.read_csv(args.input_scoring_files_folder+os.sep+mapping_protein_seq_DMS["DMS_filename"].values[0])
         score_variables = [ x for x in score_file.columns if x not in ['DMS_score','DMS_score_bin','mutant']]
     elif args.model_list=="all_mutants":
-        score_variables = ['Tranception_no_retrieval','Tranception_retrieval','MSA_Transformer_single','MSA_Transformer_ensemble','ESM1v_single','ESM1v_ensemble','Wavenet','RITA_s','RITA_m','RITA_l','RITA_xl']
+        score_variables = ['Tranception_no_retrieval','Tranception_retrieval','MSA_Transformer_single','MSA_Transformer_ensemble','ESM1v_single','ESM1v_ensemble','Wavenet']
 
     if not os.path.isdir(args.output_performance_file_folder):
         os.mkdir(args.output_performance_file_folder)
@@ -45,10 +46,11 @@ def main():
     output_filename={}
     for metric in ['Spearman','AUC','MCC']:
         performance_all_DMS[metric]={}
-        output_filename[metric]="performance_"+metric+"_"+args.model_list+".csv"
+        mutation_type = "substitutions" if not args.indel_mode else "indels"
+        output_filename[metric]=args.model_list+"_"+mutation_type+"_"+metric
         for i, score in enumerate(score_variables):
             performance_all_DMS[metric][score]=i
-            if not args.indel_mode:
+            if not args.indel_mode and args.performance_by_depth:
                 for depth in ['1','2','3','4','5+']:
                     performance_all_DMS[metric][score+'_'+depth] = i
         performance_all_DMS[metric]['number_mutants']=-1
@@ -88,7 +90,7 @@ def main():
             print("At least one scoring file missing")
             continue
 
-        if not args.indel_mode:
+        if not args.indel_mode and args.performance_by_depth:
             merged_scores['mutation_depth']=merged_scores['mutant'].apply(lambda x: len(x.split(":")))
             merged_scores['mutation_depth_grouped']=merged_scores['mutation_depth'].apply(lambda x: '5+' if x >=5 else str(x))
 
@@ -110,7 +112,7 @@ def main():
                 print("MCC issue with {}".print(DMS_id))
                 performance_DMS['MCC'][score] = np.nan
         
-        if not args.indel_mode:
+        if not args.indel_mode and args.performance_by_depth:
             for score in score_variables:
                 for depth in ['1','2','3','4','5+']:
                     merged_scores_depth = merged_scores[merged_scores.mutation_depth_grouped==depth]
@@ -146,16 +148,16 @@ def main():
         del performance_all_DMS[metric]['score_index']
         performance_all_DMS[metric]=performance_all_DMS[metric].transpose()
         performance_all_DMS[metric].loc['Average'] = performance_all_DMS[metric].mean()
-        performance_all_DMS[metric].to_csv(args.output_performance_file_folder + os.sep + output_filename[metric])
+        performance_all_DMS[metric].to_csv(args.output_performance_file_folder + os.sep + output_filename[metric] + '_DMS_level.csv')
     
         if not args.indel_mode:
             uniprot_metric_performance = performance_all_DMS[metric].groupby(['UniProt_ID']).mean().reset_index()
             uniprot_metric_performance = pd.merge(uniprot_metric_performance,uniprot_Neff_lookup,on='UniProt_ID', how='left')
             uniprot_metric_performance = pd.merge(uniprot_metric_performance,uniprot_taxon_lookup,on='UniProt_ID', how='left')
             uniprot_metric_performance.loc['Average'] = uniprot_metric_performance.mean()
-            uniprot_metric_performance.to_csv(args.output_performance_file_folder + os.sep + 'Uniprot_aggregation_'+output_filename[metric], index=False)
-            uniprot_metric_performance.groupby(['Neff_L_category']).mean().to_csv(args.output_performance_file_folder + os.sep + 'Uniprot_Neff_aggregation_'+output_filename[metric])
-            uniprot_metric_performance.groupby(['Taxon']).mean().to_csv(args.output_performance_file_folder + os.sep + 'Uniprot_Taxon_aggregation_'+output_filename[metric])
+            uniprot_metric_performance.to_csv(args.output_performance_file_folder + os.sep + output_filename[metric] + '_Uniprot_level.csv', index=False)
+            uniprot_metric_performance.groupby(['Neff_L_category']).mean().to_csv(args.output_performance_file_folder + os.sep + 'Neff_aggregation_'+output_filename[metric]+ '_Uniprot_level.csv')
+            uniprot_metric_performance.groupby(['Taxon']).mean().to_csv(args.output_performance_file_folder + os.sep + 'Taxon_aggregation_'+output_filename[metric]+ '_Uniprot_level.csv')
 
 if __name__ == '__main__':
     main()
