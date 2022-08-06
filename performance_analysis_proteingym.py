@@ -74,6 +74,7 @@ def main():
                 Taxon = mapping_protein_seq_DMS["taxon"][mapping_protein_seq_DMS["DMS_id"]==DMS_id].values[0]
 
             DMS_file = pd.read_csv(args.DMS_data_folder+os.sep+DMS_filename)
+            if 'mutant' not in DMS_file: DMS_file['mutant'] = DMS_file['mutated_sequence'] #if mutant not in DMS file we default to mutated_sequence (eg., for indels)
             print("Length DMS: {}".format(len(DMS_file)))
     
             if args.model_list=="tranception_only":

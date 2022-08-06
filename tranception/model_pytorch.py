@@ -879,7 +879,7 @@ class TranceptionLMHeadModel(GPT2PreTrainedModel):
     def score_mutants(self, DMS_data, target_seq, scoring_mirror=True, batch_size_inference=10, num_workers=10, indel_mode=False):
         """
         Method to score mutants in an input DMS file.
-        DMS_data: (dataframe) Dataframe containing the list of mutant triplets (substitutions) or full mutated sequences (indels) for scoring.
+        DMS_data: (dataframe) Dataframe containing the list of mutated sequences for scoring.
         target_seq: (string) Full reference sequence (wild type) that is mutated in the DMS assay.
         scoring_mirror: (bool) Whether to score mutated sequences from both directions (Left->Right and Right->Left).
         batch_size_inference: (int) Batch size for scoring.
@@ -887,7 +887,9 @@ class TranceptionLMHeadModel(GPT2PreTrainedModel):
         indel_mode: (bool) Flag to be used when scoring insertions and deletions. Otherwise assumes substitutions.
         """
         df = DMS_data.copy()
-        df['mutated_sequence'] = df['mutant'].apply(lambda x: scoring_utils.get_mutated_sequence(target_seq, x)) if not indel_mode else df['mutant']
+        assert ('mutated_sequence' in df) or ('mutant' in df), "DMS file to score does not have mutant nor mutated_sequence column"
+        if ('mutated_sequence' not in df) and (not indel_mode): df['mutated_sequence'] = df['mutant'].apply(lambda x: scoring_utils.get_mutated_sequence(target_seq, x))
+        if 'mutant' not in df: df['mutant'] = df['mutated_sequence'] #if mutant not in DMS file we default to mutated_sequence
         if 'DMS_score' in df: del df['DMS_score'] 
         if 'DMS_score_bin' in df: del df['DMS_score_bin'] 
         df_left_to_right_slices = scoring_utils.get_sequence_slices(df, target_seq=target_seq, model_context_len = self.config.n_ctx - 2, indel_mode=indel_mode, scoring_window=self.config.scoring_window)
