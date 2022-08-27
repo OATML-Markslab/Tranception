@@ -561,9 +561,7 @@ class TranceptionModel(GPT2PreTrainedModel):
 
             if self.gradient_checkpointing and self.training:
                 if use_cache:
-                    logger.warning(
-                        "`use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`..."
-                    )
+                    print("`use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`...")
                     use_cache = False
 
                 def create_custom_forward(module):
@@ -621,7 +619,7 @@ class TranceptionModel(GPT2PreTrainedModel):
         if not return_dict:
             return tuple(
                 v
-                for v in [hidden_states, presents, all_hidden_states, all_self_attentions, all_cross_attentions, moe_loss]
+                for v in [hidden_states, presents, all_hidden_states, all_self_attentions, all_cross_attentions]
                 if v is not None
             )
         
@@ -749,7 +747,7 @@ class TranceptionLMHeadModel(GPT2PreTrainedModel):
         flip=None,
         start_slice=None,
         end_slice=None,
-        full_raw_sequence=None,
+        mutated_sequence=None,
     ):
         r"""
         labels (:obj:`torch.LongTensor` of shape :obj:`(batch_size, sequence_length)`, `optional`):
@@ -795,10 +793,10 @@ class TranceptionLMHeadModel(GPT2PreTrainedModel):
                 
                 if self.retrieval_aggregation_mode=="aggregate_indel":
                     assert batch_size==1, "Aggregate indel is only supported for batch size of 1"
-                    truncated_sequence_text = full_raw_sequence[0][start_slice[0]:end_slice[0]]
+                    truncated_sequence_text = mutated_sequence[0][start_slice[0]:end_slice[0]]
                     if len(truncated_sequence_text)!=shift_logits.shape[1]-1: # shift_logits only has one extra token compared to truncated_sequence_text (the BOS token)
-                        print("Tokenization error -- seq length: {} and shift_logits length - 1 : {}".format(len(full_raw_sequence),shift_logits.shape[1]-1))
-                    MSA_log_prior, MSA_start, MSA_end = msa_utils.update_retrieved_MSA_log_prior_indel(self, self.MSA_log_prior, self.MSA_start, self.MSA_end, full_raw_sequence[0])  
+                        print("Tokenization error -- seq length: {} and shift_logits length - 1 : {}".format(len(mutated_sequence),shift_logits.shape[1]-1))
+                    MSA_log_prior, MSA_start, MSA_end = msa_utils.update_retrieved_MSA_log_prior_indel(self, self.MSA_log_prior, self.MSA_start, self.MSA_end, mutated_sequence[0])  
                 
                 elif self.retrieval_aggregation_mode=="aggregate_substitution":
                     MSA_log_prior=self.MSA_log_prior
@@ -876,38 +874,48 @@ class TranceptionLMHeadModel(GPT2PreTrainedModel):
             for layer_past in past
         )
     
-    def score_mutants(self, DMS_data, target_seq, scoring_mirror=True, batch_size_inference=10, num_workers=10, indel_mode=False):
+    def score_mutants(self, DMS_data, target_seq=None, scoring_mirror=True, batch_size_inference=10, num_workers=10, indel_mode=False):
         """
         Method to score mutants in an input DMS file.
         DMS_data: (dataframe) Dataframe containing the list of mutated sequences for scoring.
-        target_seq: (string) Full reference sequence (wild type) that is mutated in the DMS assay.
+        target_seq: (string) Full reference sequence (wild type) that is mutated in the DMS assay. If not None, returned scores are delta log likelihood wrt that sequence.
         scoring_mirror: (bool) Whether to score mutated sequences from both directions (Left->Right and Right->Left).
         batch_size_inference: (int) Batch size for scoring.
         num_workers: (int) Number of workers to be used in the data loader.
         indel_mode: (bool) Flag to be used when scoring insertions and deletions. Otherwise assumes substitutions.
         """
         df = DMS_data.copy()
-        assert ('mutated_sequence' in df) or ('mutant' in df), "DMS file to score does not have mutant nor mutated_sequence column"
         if ('mutated_sequence' not in df) and (not indel_mode): df['mutated_sequence'] = df['mutant'].apply(lambda x: scoring_utils.get_mutated_sequence(target_seq, x))
-        if 'mutant' not in df: df['mutant'] = df['mutated_sequence'] #if mutant not in DMS file we default to mutated_sequence
+        assert ('mutated_sequence' in df), "DMS file to score does not have mutated_sequence column"
+        #if 'mutant' not in df: df['mutant'] = df['mutated_sequence'] #if mutant not in DMS file we default to mutated_sequence
         if 'DMS_score' in df: del df['DMS_score'] 
         if 'DMS_score_bin' in df: del df['DMS_score_bin'] 
-        df_left_to_right_slices = scoring_utils.get_sequence_slices(df, target_seq=target_seq, model_context_len = self.config.n_ctx - 2, indel_mode=indel_mode, scoring_window=self.config.scoring_window)
+        if target_seq is not None:
+            df_left_to_right_slices = scoring_utils.get_sequence_slices(df, target_seq=target_seq, model_context_len = self.config.n_ctx - 2, indel_mode=indel_mode, scoring_window=self.config.scoring_window)
+        else:
+            df_left_to_right_slices = scoring_utils.get_sequence_slices(df, target_seq=list(df['mutated_sequence'])[0], model_context_len = self.config.n_ctx - 2, indel_mode=indel_mode, scoring_window='sliding')
         print("Scoring sequences from left to right")
-        scores_L_to_R = scoring_utils.get_tranception_scores_mutated_sequences(model=self, mutated_sequence_df=df_left_to_right_slices, batch_size_inference=batch_size_inference, score_var_name='avg_score_L_to_R', len_target_seq=len(target_seq), num_workers=num_workers, indel_mode=indel_mode)
+        scores_L_to_R = scoring_utils.get_tranception_scores_mutated_sequences(model=self, mutated_sequence_df=df_left_to_right_slices, batch_size_inference=batch_size_inference, score_var_name='avg_score_L_to_R', target_seq=target_seq, num_workers=num_workers, indel_mode=indel_mode)
         if scoring_mirror: 
             print("Scoring sequences from right to left")
             df_right_to_left_slices = df_left_to_right_slices.copy()
-            df_right_to_left_slices['mutated_sequence'] = df_right_to_left_slices['mutated_sequence'].apply(lambda x: x[::-1])
-            scores_R_to_L = scoring_utils.get_tranception_scores_mutated_sequences(model=self, mutated_sequence_df=df_right_to_left_slices, batch_size_inference=batch_size_inference, score_var_name='avg_score_R_to_L', len_target_seq=len(target_seq), num_workers=num_workers, reverse=True, indel_mode=indel_mode)
-            all_scores = pd.merge(scores_L_to_R, scores_R_to_L, on='mutant', how='left',suffixes=('','_R_to_L'))
+            df_right_to_left_slices['sliced_mutated_sequence'] = df_right_to_left_slices['sliced_mutated_sequence'].apply(lambda x: x[::-1])
+            scores_R_to_L = scoring_utils.get_tranception_scores_mutated_sequences(model=self, mutated_sequence_df=df_right_to_left_slices, batch_size_inference=batch_size_inference, score_var_name='avg_score_R_to_L', target_seq=target_seq, num_workers=num_workers, reverse=True, indel_mode=indel_mode)
+            all_scores = pd.merge(scores_L_to_R, scores_R_to_L, on='mutated_sequence', how='left', suffixes=('','_R_to_L'))
             all_scores['avg_score'] = (all_scores['avg_score_L_to_R'] + all_scores['avg_score_R_to_L']) / 2.0
         else:
             all_scores = scores_L_to_R
             all_scores['avg_score'] = all_scores['avg_score_L_to_R']
+        #By design "get_tranception_scores_mutated_sequences" drops the WT from the output. We add it back if that was one of the sequences to score in the DMS (score=0 by definition)
+        if target_seq in DMS_data.mutated_sequence.values:
+            if scoring_mirror:
+                wt_row = pd.DataFrame([[target_seq,0,0,0]], columns=['mutated_sequence','avg_score_L_to_R','avg_score_R_to_L','avg_score'])
+            else:
+                wt_row = pd.DataFrame([[target_seq,0,0]], columns=['mutated_sequence','avg_score_L_to_R','avg_score'])
+            all_scores = pd.concat([all_scores,wt_row], ignore_index=True)
         return all_scores
 
-    def encode_batch(self, protein_sequence, sequence_name="mutated_sequence"):
+    def encode_batch(self, protein_sequence, sequence_name="sliced_mutated_sequence"):
         """
         Method to process an input AA sequence batch (protein_sequence) and return a tokenized sequence (via the tokenizer associated to the model).
         """

@@ -8,7 +8,7 @@ export MSA_weights_folder=$PATH_TO_MSA_WEIGHTS_SUBSTITUTIONS
 
 export DMS_reference_file_path="../proteingym/ProteinGym_reference_file_substitutions.csv"
 
-srun python3 ../score_tranception_proteingym.py \
+python3 ../score_tranception_proteingym.py \
                 --checkpoint ${checkpoint} \
                 --DMS_reference_file_path ${DMS_reference_file_path} \
                 --DMS_data_folder ${DMS_data_folder} \

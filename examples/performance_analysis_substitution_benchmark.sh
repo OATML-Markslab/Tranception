@@ -8,7 +8,7 @@ export output_performance_file_folder=$PATH_TO_OUTPUT_PERFORMANCE
 export model_list="all_models" 
 export DMS_reference_file_path="../proteingym/ProteinGym_reference_file_substitutions.csv"
 
-srun python3 ../performance_analysis_proteingym.py \
+python3 ../performance_analysis_proteingym.py \
                 --model_list ${model_list} \
                 --input_scoring_files_folder ${input_scoring_files_folder} \
                 --output_performance_file_folder ${output_performance_file_folder} \

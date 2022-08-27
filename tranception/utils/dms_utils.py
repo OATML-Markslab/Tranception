@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
+from tranception.utils import scoring_utils
 
 def DMS_file_cleanup(DMS_filename, target_seq, start_idx=1, end_idx=None, DMS_mutant_column='mutant', DMS_phenotype_name='score', DMS_directionality=1, AA_vocab = "ACDEFGHIKLMNPQRSTVWY"):
     """
-    Function to process the raw DMS assay data (eg., removing invalid mutants, aggregate silent mutations)
+    Function to process the raw substitution DMS assay data (eg., removing invalid mutants, aggregate silent mutations).
     """
     DMS_data = pd.read_csv(DMS_filename, low_memory=False)
     end_idx = start_idx + len(target_seq) - 1 if end_idx is None else end_idx
@@ -20,7 +21,10 @@ def DMS_file_cleanup(DMS_filename, target_seq, start_idx=1, end_idx=None, DMS_mu
     DMS_data.dropna(subset = [DMS_phenotype_name], inplace=True)
     DMS_data['DMS_score'] = DMS_data[DMS_phenotype_name] * DMS_directionality
     DMS_data=DMS_data[['mutant','DMS_score']]
-    DMS_data = DMS_data.groupby('mutant').mean().reset_index()
+    DMS_data=DMS_data.groupby('mutant').mean().reset_index()
+
+    DMS_data['mutated_sequence'] = DMS_data['mutant'].apply(lambda x: scoring_utils.get_mutated_sequence(target_seq, x))
+    DMS_data=DMS_data[['mutant','mutated_sequence','DMS_score']]
     
     return DMS_data
 

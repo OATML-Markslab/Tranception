@@ -135,7 +135,7 @@ def get_msa_prior(MSA_data_file, MSA_weight_file_name, MSA_start, MSA_end, len_t
     return msa_prior
 
 
-def update_retrieved_MSA_log_prior_indel(model, MSA_log_prior, MSA_start, MSA_end, full_raw_sequence):
+def update_retrieved_MSA_log_prior_indel(model, MSA_log_prior, MSA_start, MSA_end, mutated_sequence):
     """
     Function to process MSA when scoring indels.
     To identify positions to add / remove in the retrieved MSA, we append and align the sequence to be scored to the original MSA for that protein family with Clustal Omega.
@@ -157,7 +157,7 @@ def update_retrieved_MSA_log_prior_indel(model, MSA_log_prior, MSA_start, MSA_en
                 sampled_write_location.write(key_name+"\n"+"\n".join([msa_data_sampled[key][i:i+80] for i in range(0, len(msa_data_sampled[key]), 80)])+"\n")
     
     seq_to_align_location = model.MSA_folder + os.sep + "Sampled" + os.sep + "Seq_to_align_" + model.MSA_filename.split(os.sep)[-1]
-    sequence_text_split = [full_raw_sequence[i:i+80] for i in range(0, len(full_raw_sequence), 80)]
+    sequence_text_split = [mutated_sequence[i:i+80] for i in range(0, len(mutated_sequence), 80)]
     sequence_text_split_split_join = "\n".join([">SEQ_TO_SCORE"]+sequence_text_split)
     os.system("echo '"+sequence_text_split_split_join+"' > "+seq_to_align_location)
     

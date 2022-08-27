@@ -74,12 +74,14 @@ def sequence_replace(sequences, char_to_replace, char_replacements):
     """
     return [sequence_replace_single(sequence, char_to_replace, char_replacements) for sequence in sequences]
 
-def get_tranception_scores_mutated_sequences(model, mutated_sequence_df, batch_size_inference, score_var_name, len_target_seq, num_workers=10, reverse=False, indel_mode=False):
+def get_tranception_scores_mutated_sequences(model, mutated_sequence_df, batch_size_inference, score_var_name, target_seq, num_workers=10, reverse=False, indel_mode=False):
     """
-    Helper function that takes as input a set of mutated sequences (in a pandas dataframe) and returns scores for each mutation (delta log likelihood wrt wild type sequence).
+    Helper function that takes as input a set of mutated sequences (in a pandas dataframe) and returns scores for each mutation.
+    If target_seq is not None, returns the delta log likelihood wrt that target sequence -- otherwise returns the log likelihood of the protein sequences.
     """
     scores = {} 
-    scores['mutant']=[]
+    scores['mutated_sequence']=[]
+    scores['sliced_mutated_sequence']=[]
     scores['window_start']=[]
     scores['window_end']=[]
     scores['score']=[]
@@ -94,12 +96,14 @@ def get_tranception_scores_mutated_sequences(model, mutated_sequence_df, batch_s
         mutant_index=0
         for encoded_batch in tqdm.tqdm(ds_loader):
             full_batch_length = len(encoded_batch['input_ids'])
-            scores['mutant'] += list(mutated_sequence_df['mutant'][mutant_index:mutant_index+full_batch_length])
+            mutated_sequence = np.array(mutated_sequence_df['mutated_sequence'][mutant_index:mutant_index+full_batch_length])
+            scores['mutated_sequence'] += list(mutated_sequence)
+            sliced_mutated_sequence = np.array(mutated_sequence_df['sliced_mutated_sequence'][mutant_index:mutant_index+full_batch_length])
+            scores['sliced_mutated_sequence'] += list(sliced_mutated_sequence)
             window_start = np.array(mutated_sequence_df['window_start'][mutant_index:mutant_index+full_batch_length])
             scores['window_start'] += list(window_start)
             window_end = np.array(mutated_sequence_df['window_end'][mutant_index:mutant_index+full_batch_length])
             scores['window_end'] += list(window_end)
-            full_raw_sequence = np.array(mutated_sequence_df['full_raw_sequence'][mutant_index:mutant_index+full_batch_length])
             for k, v in encoded_batch.items():
                 if isinstance(v, torch.Tensor):
                     encoded_batch[k] = v.to(model.device)            
@@ -109,7 +113,7 @@ def get_tranception_scores_mutated_sequences(model, mutated_sequence_df, batch_s
                     encoded_batch['flip']=torch.tensor([1]*full_batch_length)
                 encoded_batch['start_slice']=window_start
                 encoded_batch['end_slice']=window_end
-                encoded_batch['full_raw_sequence'] = full_raw_sequence #only mutated_sequence is flipped if the scoring_mirror branch of score_mutants. No need to flip full_raw_sequence for MSA re-aligning
+                encoded_batch['mutated_sequence'] = mutated_sequence #only mutated_sequence is flipped if the scoring_mirror branch of score_mutants. No need to flip mutated_sequence for MSA re-aligning
                 fused_shift_log_probas=model(**encoded_batch,return_dict=True).fused_shift_log_probas
                 loss_fct = NLLLoss(reduction='none')
                 loss = - loss_fct(input=fused_shift_log_probas.view(-1, fused_shift_log_probas.size(-1)), target=shift_labels.view(-1)).view(fused_shift_log_probas.shape[0],fused_shift_log_probas.shape[1])
@@ -121,18 +125,29 @@ def get_tranception_scores_mutated_sequences(model, mutated_sequence_df, batch_s
             mask = encoded_batch['attention_mask'][..., 1:].float()
             mask[mask==0]=float('nan')
             loss *= mask
-            loss =  nanmean(loss, dim=1)
+            loss =  nansum(loss, dim=1)
             scores_batch = list(loss.cpu().numpy())
             full_batch_length = len(encoded_batch['input_ids'])
             scores['score'] += scores_batch
             mutant_index+=full_batch_length
     scores = pd.DataFrame(scores)
-    scores_mutated_seq = scores[scores.mutant != 'wt']
-    scores_wt = scores[scores.mutant == 'wt']
-    delta_scores = pd.merge(scores_mutated_seq,scores_wt,how='left',on=['window_start'],suffixes=('','_wt'))
-    delta_scores[score_var_name]  = delta_scores['score'] - delta_scores['score_wt']
-    delta_scores=delta_scores[['mutant',score_var_name]].groupby('mutant').mean().reset_index()
-    return delta_scores
+    if model.config.scoring_window=="sliding":
+        scores = scores[['mutated_sequence','score']].groupby('mutated_sequence').sum().reset_index() #We need to aggregate scores when using sliding mode
+    scores['score'] = scores['score'] / scores['mutated_sequence'].map(lambda x: len(x))
+    if target_seq is not None:
+        scores_mutated_seq = scores[scores.mutated_sequence != target_seq]
+        scores_wt = scores[scores.mutated_sequence == target_seq]
+        merge_delta = 'mutated_sequence' if model.config.scoring_window=="sliding" else 'window_start'
+        if model.config.scoring_window=="optimal":
+            delta_scores = pd.merge(scores_mutated_seq,scores_wt,how='left',on=[merge_delta],suffixes=('','_wt'))
+            delta_scores[score_var_name] = delta_scores['score'] - delta_scores['score_wt']
+        elif model.config.scoring_window=="sliding":
+            delta_scores = scores_mutated_seq.copy()
+            delta_scores[score_var_name] = delta_scores['score'] - list(scores_wt['score'])[0] # In sliding mode there is a single reference window for the WT
+        return delta_scores[['mutated_sequence',score_var_name]]
+    else:
+        scores[score_var_name] = scores['score']
+        return scores[['mutated_sequence',score_var_name]]
 
 def get_sequence_slices(df, target_seq, model_context_len, start_idx=1, scoring_window="optimal", indel_mode=False):
     """
@@ -149,44 +164,40 @@ def get_sequence_slices(df, target_seq, model_context_len, start_idx=1, scoring_
     Note: when scoring indels for sequences that would be longer than the model max context length, it is preferable to use the "sliding" scoring_window. Use "optimal" otherwise.
     """
     len_target_seq = len(target_seq)
-    num_mutants = len(df['mutant'])
+    num_mutants = len(df['mutated_sequence'])
     df=df.reset_index(drop=True)
     if scoring_window=="optimal":
         df['mutation_barycenter'] = df['mutant'].apply(lambda x: int(np.array([int(mutation[1:-1]) - start_idx for mutation in x.split(':')]).mean())) if not indel_mode else df['mutated_sequence'].apply(lambda x: len(x)//2)
         df['scoring_optimal_window'] = df['mutation_barycenter'].apply(lambda x: get_optimal_window(x, len_target_seq, model_context_len)) if not indel_mode else df['mutated_sequence'].apply(lambda x: (0,len(x)))
-        df['full_raw_sequence'] = df['mutated_sequence']
-        df['mutated_sequence'] = [df['mutated_sequence'][index][df['scoring_optimal_window'][index][0]:df['scoring_optimal_window'][index][1]] for index in range(num_mutants)]
+        df['sliced_mutated_sequence'] = [df['mutated_sequence'][index][df['scoring_optimal_window'][index][0]:df['scoring_optimal_window'][index][1]] for index in range(num_mutants)]
         df['window_start'] = df['scoring_optimal_window'].map(lambda x: x[0]) 
         df['window_end'] = df['scoring_optimal_window'].map(lambda x: x[1])
-        del df['scoring_optimal_window']
+        del df['scoring_optimal_window'], df['mutation_barycenter']
+        if 'mutant' in df: del df['mutant']
         df_wt=df.copy()
-        df_wt['mutant'] = ['wt'] * num_mutants
-        df_wt['full_raw_sequence'] = [target_seq] * num_mutants
-        if indel_mode: # For indels, we set the wild type reference to be always the same (full length) sequence. We assume here that the length is lower than model context size (otherwise use "Sliding")
-            df_wt['mutation_barycenter'] = [len_target_seq // 2] * num_mutants
-            df_wt['window_end'] = df_wt['full_raw_sequence'].map(lambda x:len(x))
-        df_wt['mutated_sequence'] = [target_seq[df_wt['window_start'][index]:df_wt['window_end'][index]] for index in range(num_mutants)]
+        df_wt['mutated_sequence'] = [target_seq] * num_mutants
+        if indel_mode: # For indels, we set the wild type reference to be always the same (full length) sequence. We assume here that the length is lower than model context size (otherwise "Sliding" mode should be used)
+            df_wt['window_end'] = df_wt['mutated_sequence'].map(lambda x:len(x))
+        df_wt['sliced_mutated_sequence'] = [target_seq[df_wt['window_start'][index]:df_wt['window_end'][index]] for index in range(num_mutants)]
         df = pd.concat([df,df_wt], axis=0)
         df = df.drop_duplicates()
     elif scoring_window=="sliding":
-        len_target_seq = len(target_seq)
         num_windows = 1 + int( len_target_seq / model_context_len)
         df_list=[]
         start=0
         for window_index in range(1, num_windows+1):
             df_sliced = df.copy()
-            df_sliced['full_raw_sequence'] = df_sliced['mutated_sequence']
-            df_sliced['mutated_sequence'] = df_sliced['mutated_sequence'].map(lambda x: x[start:start+model_context_len]) 
+            df_sliced['sliced_mutated_sequence'] = df_sliced['mutated_sequence'].map(lambda x: x[start:start+model_context_len]) 
             df_sliced['window_start'] = [start] * num_mutants 
-            df_sliced['window_end']  =  df_sliced['full_raw_sequence'].map(lambda x: min(len(x), start+model_context_len)) 
+            df_sliced['window_end']  =  df_sliced['mutated_sequence'].map(lambda x: min(len(x), start+model_context_len)) 
             df_sliced_wt = df_sliced.copy()
-            df_sliced_wt['mutant'] = ['wt'] * num_mutants
-            df_sliced_wt['full_raw_sequence'] = [target_seq] * num_mutants
-            df_sliced_wt['mutated_sequence'] = df_sliced_wt['full_raw_sequence'].map(lambda x: x[start:start+model_context_len])
-            df_sliced_wt['window_end'] = df_sliced_wt['full_raw_sequence'].map(lambda x: min(len(x), start+model_context_len)) #Need to adjust end index if WT and sequence are not same full length
+            df_sliced_wt['mutated_sequence'] = [target_seq] * num_mutants
+            df_sliced_wt['sliced_mutated_sequence'] = df_sliced_wt['mutated_sequence'].map(lambda x: x[start:start+model_context_len])
+            df_sliced_wt['window_end'] = df_sliced_wt['mutated_sequence'].map(lambda x: min(len(x), start+model_context_len)) #Need to adjust end index if WT and sequence are not same full length
             df_list.append(df_sliced)
             df_list.append(df_sliced_wt)
             start += model_context_len
         df_final = pd.concat(df_list,axis=0)
+        if 'mutant' in df_final: del df_final['mutant']
         df = df_final.drop_duplicates()
     return df.reset_index(drop=True)

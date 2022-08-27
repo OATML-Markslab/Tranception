@@ -14,7 +14,7 @@ export DMS_reference_file_path="../proteingym/ProteinGym_reference_file_indels_s
 # Leveraging retrieval when scoring indels require batch size of 1 (no retrieval can use any batch size fitting in memory)
 export batch_size_inference=1 
 
-srun python3 ../score_tranception_proteingym.py \
+python3 ../score_tranception_proteingym.py \
                 --checkpoint ${checkpoint} \
                 --batch_size_inference ${batch_size_inference} \
                 --DMS_reference_file_path ${DMS_reference_file_path} \

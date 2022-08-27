@@ -23,7 +23,21 @@ unzip Tranception_Large_checkpoint.zip
 rm Tranception_Large_checkpoint.zip
 ```
 
-The Tranception model checkpoint is also made available through the [Huggging Face hub](https://huggingface.co/OATML-Markslab/Tranception).
+To download the *Tranception Medium* model checkpoint (~1.4GB unzipped):
+```
+curl -o Tranception_Medium_checkpoint.zip https://marks.hms.harvard.edu/tranception/Tranception_Medium_checkpoint.zip
+unzip Tranception_Medium_checkpoint.zip
+rm Tranception_Medium_checkpoint.zip
+```
+
+To download the *Tranception Small* model checkpoint (~400MB unzipped):
+```
+curl -o Tranception_Small_checkpoint.zip https://marks.hms.harvard.edu/tranception/Tranception_Small_checkpoint.zip
+unzip Tranception_Small_checkpoint.zip
+rm Tranception_Small_checkpoint.zip
+```
+
+The Tranception model checkpoints are also made available through the [Huggging Face hub](https://huggingface.co/OATML-Markslab/Tranception_Large).
 
 When scoring with retrieval, we compute weighted pseudocounts at each position using sequence weights as per the procedure described in [Hopf et al.](https://www.nature.com/articles/nbt.3769).
 Weights for all proteins in the ProteinGym benchmarks may be downloaded as follows (~68M unzipped):
@@ -70,35 +84,30 @@ The ProteinGym benchmarks are also available on the [Hugging Face Hub](https://h
 
 The [proteingym folder](https://github.com/OATML-Markslab/Tranception/tree/main/ProteinGym) provides detailed performance files for Tranception and baseline models on the two ProteinGym benchmarks, for the 3 focus metrics in the paper (eg., Spearman's rank, AUC, MCC).
 
-We recommand to aggregate fitness pediction performance at the Uniprot ID level to avoid biasing results towards proteins for which several DMS assays are available in ProteinGym. The corresponding aggregated files are suffixed with "_Uniprot_level", while the non aggregated performance files are suffixed with "_DMS_level".
-Furthermore, to enable fair comparison with models trained multiple-sequence alignments (eg., EVE, DeepSequence, EVmutation), we only evaluate on the subset of mutations where position coverage is deemed high enough by these models to make a prediction. The corresponding files are preffixed with "all_models_". For comprehensiveness, we also provide performance files on all possible mutants available in ProteinGym (preffixed with "all_mutants_"), comparing only with the baselines that are able to score all mutants.
+We recommand to aggregate fitness pediction performance at the Uniprot ID level to avoid biasing results towards proteins for which several DMS assays are available in ProteinGym. The corresponding aggregated files are suffixed with "_Uniprot_level", while the non aggregated performance files are suffixed with "_DMS_level". Note that there is at most one DMS per Uniprot_ID for the ProteinGym indel benchmark (ie., no difference between "_Uniprot_level" and "_DMS_level"). We thus only provide one set of performance metrics for that benchmark.
 
-Note that for the ProteinGym indel benchmark, baselines that are able to score indels do not have the aforementionned coverage constraints (ie., no distinction between "all_models_" and "all_mutants_") and there is at most one DMS per Uniprot_ID (ie., no difference between "_Uniprot_level" and "_DMS_level"). We thus only provide one set of performance metrics for that benchmark.
+Note: an earlier version of our benchmark contained scores for all model baselines on the subset of mutations happening at well-covered positions in the corresponding MSAs. We since extended the scoring of alignment-based methods (eg., EVE, DeepSequence, EVmutation) to all sequence positions and noticed minimal changes to the resulting relative performance and score rankings. As a result, we are now only reporting performance on the full set of all DMS mutations for simplicity.
 
-### ProteinGym substitution benchmark - Leaderboard
-The table below provides the average Spearman's rank correlation between DMS experimental fitness measurements and fitness predictions from Tranception or other baselines on the ProteinGym substitution benchmark. Following the terminology introduced above, we report the performance at the "Uniprot" level for "All models".
+### ProteinGym benchmarks - Leaderboard
 
-Rank | Model name | Spearman | Reference
---- | --- | --- | --- |
-1 | Ensemble Tranception & EVE | 0.476 | [Notin et al.](https://arxiv.org/abs/2205.13760)
-2 | Tranception (w/ retrieval) | 0.451 | [Notin et al.](https://arxiv.org/abs/2205.13760)
-3 | EVE | 0.448 | [Frazer et al.](https://www.nature.com/articles/s41586-021-04043-8)
-4 | EVmutation | 0.427 | [Hopf et al.](https://www.nature.com/articles/nbt.3769)
-5 | MSA Transformer | 0.422 | [Rao et al.](https://proceedings.mlr.press/v139/rao21a.html)
-6 | DeepSequence | 0.415 | [Riesselman et al.](https://www.nature.com/articles/s41592-018-0138-4)
-7 | Tranception (no retrieval) | 0.406 | [Notin et al.](https://arxiv.org/abs/2205.13760)
-8 | Wavenet | 0.398 | [Shin et al.](https://www.nature.com/articles/s41467-021-22732-w)
-9 | Site Independent | 0.397 | [Hopf et al.](https://www.nature.com/articles/nbt.3769)
-10 | ESM-1v | 0.371 | [Meier et al.](https://proceedings.neurips.cc/paper/2021/hash/f51338d736f95dd42427296047067694-Abstract.html)
+The full ProteinGym benchmarks performance files are also accessible via our dedicated website: https://www.proteingym.org/.
+It includes leaderboards for the substitution and indel benchmarks, as well as detailed DMS-level performance files for all baselines.
+The current version of the substitution benchmark includes the following baselines:
 
-### ProteinGym indel benchmark - Leaderboard
-The table below provides the average Spearman's rank correlation between DMS experimental fitness measurements and fitness predictions from Tranception or other baselines on the ProteinGym indel benchmark.
+Model name | Model type | Reference
+--- | --- | --- |
+Site Independent | Alignment-based model | [Hopf, T.A., Ingraham, J., Poelwijk, F.J., Schärfe, C.P., Springer, M., Sander, C., & Marks, D.S. (2017). Mutation effects predicted from sequence co-variation. Nature Biotechnology, 35, 128-135.](https://www.nature.com/articles/nbt.3769)
+EVmutation | Alignment-based model | [Hopf, T.A., Ingraham, J., Poelwijk, F.J., Schärfe, C.P., Springer, M., Sander, C., & Marks, D.S. (2017). Mutation effects predicted from sequence co-variation. Nature Biotechnology, 35, 128-135.](https://www.nature.com/articles/nbt.3769)
+Wavenet | Alignment-based model | [Shin, J., Riesselman, A.J., Kollasch, A.W., McMahon, C., Simon, E., Sander, C., Manglik, A., Kruse, A.C., & Marks, D.S. (2021). Protein design and variant prediction using autoregressive generative models. Nature Communications, 12.](https://www.nature.com/articles/s41467-021-22732-w)
+DeepSequence | Alignment-based model | [Riesselman, A.J., Ingraham, J., & Marks, D.S. (2018). Deep generative models of genetic variation capture the effects of mutations. Nature Methods, 15, 816-822.](https://www.nature.com/articles/s41592-018-0138-4)
+EVE | Alignment-based model | [Frazer, J., Notin, P., Dias, M., Gomez, A.N., Min, J.K., Brock, K.P., Gal, Y., & Marks, D.S. (2021). Disease variant prediction with deep generative models of evolutionary data. Nature.](https://www.nature.com/articles/s41586-021-04043-8)
+ESM-1v | Protein language model |[Meier, J., Rao, R., Verkuil, R., Liu, J., Sercu, T., & Rives, A. (2021). Language models enable zero-shot prediction of the effects of mutations on protein function. NeurIPS.](https://proceedings.neurips.cc/paper/2021/hash/f51338d736f95dd42427296047067694-Abstract.html)
+MSA Transformer | Protein language model |[Rao, R., Liu, J., Verkuil, R., Meier, J., Canny, J.F., Abbeel, P., Sercu, T., & Rives, A. (2021). MSA Transformer. ICML.](http://proceedings.mlr.press/v139/rao21a.html)
+RITA | Protein language model | [Hesslow, D., Zanichelli, N., Notin, P., Poli, I., & Marks, D.S. (2022). RITA: a Study on Scaling Up Generative Protein Sequence Models. ArXiv, abs/2205.05789.](https://arxiv.org/abs/2205.05789)
+Progen2 | Protein language model | [Nijkamp, E., Ruffolo, J.A., Weinstein, E.N., Naik, N., & Madani, A. (2022). ProGen2: Exploring the Boundaries of Protein Language Models. ArXiv, abs/2206.13517.](https://arxiv.org/abs/2206.13517)
+Tranception | Hybrid | [Notin, P., Dias, M., Frazer, J., Marchena-Hurtado, J., Gomez, A.N., Marks, D.S., & Gal, Y. (2022). Tranception: protein fitness prediction with autoregressive transformers and inference-time retrieval. ICML.](https://proceedings.mlr.press/v162/notin22a.html)
 
-Rank | Model name | Spearman | Reference
---- | --- | --- | --- |
-1 | Tranception (w/ retrieval) | 0.463 | [Notin et al.](https://arxiv.org/abs/2205.13760)
-2 | Tranception (no retrieval) | 0.43 | [Notin et al.](https://arxiv.org/abs/2205.13760)
-3 | Wavenet | 0.412 | [Shin et al.](https://www.nature.com/articles/s41467-021-22732-w)
+Except for the Wavenet model (which only uses alignments to recover a set of homologous protein sequences to train on, but then trains on non-aligned sequences), all alignment-based methods are unable to score indels given the fixed coordinate system they are trained on. Similarly, the masking procedure to generate the masked-marginals for ESM-1v and MSA Transformer requires the position to exist in the wild-type sequence. All the other model architectures listed above (eg., Tranception, RITA, Progen2) are included in the indel benchmark.
 
 ## Aggregated model scoring files
 The scores for all DMS assays in the ProteinGym substitution benchmark for Tranception and other baselines (eg., EVE, Wavenet, ESM-1v, MSA Transformer) may be downloaded as follows;
@@ -123,6 +132,11 @@ unzip MSA_ProteinGym.zip
 rm MSA_ProteinGym.zip
 ```
 
+## Protein Design
+
+As a powerful generative model with SOTA fitness prediction capabilities, Tranception is well-suited to support the design of new proteins. To illustrate these capabilities, we built a Gradio app that enables in silico directed evolution for iterative protein redesign.
+The app is available on [Hugging Face spaces](https://huggingface.co/spaces/PascalNotin/Tranception_design) (ideal for short proteins/mutation ranges) and as a [colab notebook](https://colab.research.google.com/drive/12ni4U1Na9VWwnwdpGzYHCkNC7sud9SLy?usp=sharing) (w/ GPU support each directed evolution cycle takes ~5 mins for full proteins).
+
 ## License
 This project is available under the MIT license.
 
@@ -133,4 +147,7 @@ Notin, P., Dias, M., Frazer, J., Marchena-Hurtado, J., Gomez, A., Marks, D.S., G
 ```
 
 ## Links
-Pre-print: https://arxiv.org/abs/2205.13760
+ICML proceedings: https://proceedings.mlr.press/v162/notin22a.html
+Arxiv pre-print: https://arxiv.org/abs/2205.13760
+HuggingFace Hub (model checkpoints): https://huggingface.co/OATML-Markslab/Tranception
+ProteinGym website: https://www.proteingym.org/
