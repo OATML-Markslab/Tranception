@@ -1,6 +1,6 @@
 # Tranception
 
-This is the official code repository for the paper "Tranception: protein fitness prediction with autoregressive transformers and inference-time retrieval". This project is a joint collaboration between the [Marks lab](https://www.deboramarkslab.com/) and the [OATML group](https://oatml.cs.ox.ac.uk/).
+This is the official code repository for the paper "Tranception: Protein Fitness Prediction with Autoregressive Transformers and Inference-time Retrieval". This project is a joint collaboration between the [Marks lab](https://www.deboramarkslab.com/) and the [OATML group](https://oatml.cs.ox.ac.uk/).
 
 ## Abstract
 The ability to accurately model the fitness landscape of protein sequences is critical to a wide range of applications, from quantifying the effects of human variants on disease likelihood, to predicting immune-escape mutations in viruses and designing novel biotherapeutic proteins. Deep generative models of protein sequences trained on multiple sequence alignments have been the most successful approaches so far to address these tasks. The performance of these methods is however contingent on the availability of sufficiently deep and diverse alignments for reliable training. Their potential scope is thus limited by the fact many protein families are hard, if not impossible, to align. Large language models trained on massive quantities of non-aligned protein sequences from diverse families address these problems and show potential to eventually bridge the performance gap. We introduce Tranception, a novel transformer architecture leveraging autoregressive predictions and retrieval of homologous sequences at inference to achieve state-of-the-art fitness prediction performance. Given its markedly higher performance on multiple mutants, robustness to shallow alignments and ability to score indels, our approach offers significant gain of scope over existing approaches. To enable more rigorous model testing across a broader range of protein families, we develop ProteinGym -- an extensive set of multiplexed assays of variant effects, substantially increasing both the number and diversity of assays compared to existing benchmarks.
@@ -48,7 +48,9 @@ rm MSA_weights.zip
 ```
 To compute sequence weights for new proteins, you may use the MSA_processing class under `tranception/utils/msa_utils.py`.
 
-The `examples` folder provides several bash scripts that may be used for scoring and evaluating Tranception on the ProteinGym benchmarks.
+### Fitness prediction with Tranception & performance evaluation on ProteinGym
+To predict the fitness of mutated sequences (substitutions and indels) with Tranception, you may use the [main scoring script](https://github.com/OATML-Markslab/Tranception/blob/main/score_tranception_proteingym.py). To then evaluate the performance of these predictions against ground truth labels (eg., DMS assays from the ProteinGym benchmark) across the different metrics discussed in the paper (ie., Spearman's rank correlation, AUC, MCC) you may use the [performance analysis script](https://github.com/OATML-Markslab/Tranception/blob/main/performance_analysis_proteingym.py).
+The [examples](https://github.com/OATML-Markslab/Tranception/tree/main/examples) folder provides several bash scripts illustrating how these two scripts may be used.
 
 ## ProteinGym
 ProteinGym is an extensive set of Deep Mutational Scanning (DMS) assays curated to enable thorough comparisons of various mutation effect predictors indifferent regimes. It is comprised of two benchmarks: 1) a substitution benchmark which consists of the experimental characterisation of ∼1.5M missense variants across 87 DMS assays 2) an indel benchmark that includes ∼300k mutants across 7 DMS assays.
@@ -82,7 +84,7 @@ The ProteinGym benchmarks are also available on the [Hugging Face Hub](https://h
 
 ## Fitness prediction performance
 
-The [proteingym folder](https://github.com/OATML-Markslab/Tranception/tree/main/ProteinGym) provides detailed performance files for Tranception and baseline models on the two ProteinGym benchmarks, for the 3 focus metrics in the paper (eg., Spearman's rank, AUC, MCC).
+The [ProteinGym folder](https://github.com/OATML-Markslab/Tranception/tree/main/proteingym) provides detailed performance files for Tranception and baseline models on the two ProteinGym benchmarks, for the 3 focus metrics in the paper (eg., Spearman's rank, AUC, MCC).
 
 We recommand to aggregate fitness pediction performance at the Uniprot ID level to avoid biasing results towards proteins for which several DMS assays are available in ProteinGym. The corresponding aggregated files are suffixed with "_Uniprot_level", while the non aggregated performance files are suffixed with "_DMS_level". Note that there is at most one DMS per Uniprot_ID for the ProteinGym indel benchmark (ie., no difference between "_Uniprot_level" and "_DMS_level"). We thus only provide one set of performance metrics for that benchmark.
 
@@ -102,7 +104,7 @@ Wavenet | Alignment-based model | [Shin, J., Riesselman, A.J., Kollasch, A.W., M
 DeepSequence | Alignment-based model | [Riesselman, A.J., Ingraham, J., & Marks, D.S. (2018). Deep generative models of genetic variation capture the effects of mutations. Nature Methods, 15, 816-822.](https://www.nature.com/articles/s41592-018-0138-4)
 EVE | Alignment-based model | [Frazer, J., Notin, P., Dias, M., Gomez, A.N., Min, J.K., Brock, K.P., Gal, Y., & Marks, D.S. (2021). Disease variant prediction with deep generative models of evolutionary data. Nature.](https://www.nature.com/articles/s41586-021-04043-8)
 ESM-1v | Protein language model |[Meier, J., Rao, R., Verkuil, R., Liu, J., Sercu, T., & Rives, A. (2021). Language models enable zero-shot prediction of the effects of mutations on protein function. NeurIPS.](https://proceedings.neurips.cc/paper/2021/hash/f51338d736f95dd42427296047067694-Abstract.html)
-MSA Transformer | Protein language model |[Rao, R., Liu, J., Verkuil, R., Meier, J., Canny, J.F., Abbeel, P., Sercu, T., & Rives, A. (2021). MSA Transformer. ICML.](http://proceedings.mlr.press/v139/rao21a.html)
+MSA Transformer | Hybrid |[Rao, R., Liu, J., Verkuil, R., Meier, J., Canny, J.F., Abbeel, P., Sercu, T., & Rives, A. (2021). MSA Transformer. ICML.](http://proceedings.mlr.press/v139/rao21a.html)
 RITA | Protein language model | [Hesslow, D., Zanichelli, N., Notin, P., Poli, I., & Marks, D.S. (2022). RITA: a Study on Scaling Up Generative Protein Sequence Models. ArXiv, abs/2205.05789.](https://arxiv.org/abs/2205.05789)
 Progen2 | Protein language model | [Nijkamp, E., Ruffolo, J.A., Weinstein, E.N., Naik, N., & Madani, A. (2022). ProGen2: Exploring the Boundaries of Protein Language Models. ArXiv, abs/2206.13517.](https://arxiv.org/abs/2206.13517)
 Tranception | Hybrid | [Notin, P., Dias, M., Frazer, J., Marchena-Hurtado, J., Gomez, A.N., Marks, D.S., & Gal, Y. (2022). Tranception: protein fitness prediction with autoregressive transformers and inference-time retrieval. ICML.](https://proceedings.mlr.press/v162/notin22a.html)
@@ -135,7 +137,7 @@ rm MSA_ProteinGym.zip
 ## Protein Design
 
 As a powerful generative model with SOTA fitness prediction capabilities, Tranception is well-suited to support the design of new proteins. To illustrate these capabilities, we built a Gradio app that enables in silico directed evolution for iterative protein redesign.
-The app is available on [Hugging Face spaces](https://huggingface.co/spaces/PascalNotin/Tranception_design) (ideal for short proteins/mutation ranges) and as a [colab notebook](https://colab.research.google.com/drive/12ni4U1Na9VWwnwdpGzYHCkNC7sud9SLy?usp=sharing) (w/ GPU support each directed evolution cycle takes ~5 mins for full proteins).
+The app is available on [Hugging Face spaces](https://huggingface.co/spaces/PascalNotin/Tranception_design) (ideal for short proteins/mutation ranges) and as a [Colab notebook](https://colab.research.google.com/drive/12ni4U1Na9VWwnwdpGzYHCkNC7sud9SLy?usp=sharing) (w/ GPU support each directed evolution cycle takes ~5 mins for full proteins).
 
 ## License
 This project is available under the MIT license.
@@ -147,7 +149,8 @@ Notin, P., Dias, M., Frazer, J., Marchena-Hurtado, J., Gomez, A., Marks, D.S., G
 ```
 
 ## Links
-ICML proceedings: https://proceedings.mlr.press/v162/notin22a.html
-Arxiv pre-print: https://arxiv.org/abs/2205.13760
-HuggingFace Hub (model checkpoints): https://huggingface.co/OATML-Markslab/Tranception
-ProteinGym website: https://www.proteingym.org/
+- ICML proceedings: https://proceedings.mlr.press/v162/notin22a.html
+- Arxiv pre-print: https://arxiv.org/abs/2205.13760
+- Hugging Face Hub (model checkpoints): https://huggingface.co/OATML-Markslab/Tranception
+- ProteinGym website: https://www.proteingym.org/
+- Design app: [Hugging Face spaces](https://huggingface.co/spaces/PascalNotin/Tranception_design) or [Colab](https://colab.research.google.com/drive/12ni4U1Na9VWwnwdpGzYHCkNC7sud9SLy?usp=sharing)
