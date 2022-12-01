@@ -783,6 +783,7 @@ class TranceptionLMHeadModel(GPT2PreTrainedModel):
         lm_logits = self.lm_head(hidden_states)
 
         loss = None
+        fused_shift_log_probas = None
         if labels is not None:
             # Shift so that tokens < n predict n
             shift_logits = lm_logits[..., :-1, :].contiguous()
@@ -845,7 +846,6 @@ class TranceptionLMHeadModel(GPT2PreTrainedModel):
             else:
                 loss_fct = CrossEntropyLoss()
                 loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
-                fused_shift_log_probas = None
 
         if not return_dict:
             output = (lm_logits,) + transformer_outputs[1:] 
