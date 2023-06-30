@@ -373,7 +373,12 @@ class Fast_MSA_processing:
         ):
         
         """
-        Faster MSA processing using 
+        Faster MSA processing 
+        Instead of comparing each sequence to each other in the original code
+        we parallelize for faster speed but we need more memory
+        the memory use can be adjusted by changing the number of sequences in the subarray
+        this code will not work if there is fully empty sequences in the msa
+
         This MSA_processing class is directly borrowed from the EVE codebase: https://github.com/OATML-Markslab/EVE
         
         Parameters:
@@ -504,12 +509,12 @@ class Fast_MSA_processing:
             try:
                 self.weights = np.load(file=self.weights_location)
                 if verbose: print("Loaded sequence weights from disk")
-            except:
+            except FileNotFoundError:
                 if verbose: print ("Computing sequence weights")
-                ohe = self.one_hot_encoding.astype('float32')
+                ohe = self.one_hot_encoding.astype('float16')
                 ohe = ohe.reshape((ohe.shape[0], ohe.shape[1] * ohe.shape[2]))
                 nb_seq = ohe.shape[0]
-                sub_array_nb = (nb_seq // 5000) + 1
+                sub_array_nb = (nb_seq // 5000) + 1 # change 5000 to optimize memory vs speed
                 start_ind = 0
                 denoms = []
                 for i, sub_array in enumerate(np.array_split(ohe, sub_array_nb, axis=0)):
