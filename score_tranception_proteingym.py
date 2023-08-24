@@ -11,6 +11,13 @@ from tranception import config, model_pytorch
 
 dir_path = os.path.dirname(os.path.abspath(__file__))
 
+def find_mutations(original, mutated_sequence):
+    mutations = []
+    for i, (o, m) in enumerate(zip(original, mutated_sequence)):
+        if o != m:
+            mutations.append(f"{o}{i+1}{m}")
+    return mutations
+    
 def main():
     """
     Main script to score sets of mutated protein sequences (substitutions or indels) with Tranception.
@@ -121,7 +128,10 @@ def main():
                                     num_workers=args.num_workers, 
                                     indel_mode=args.indel_mode
                                     )
-    all_scores.to_csv(scoring_filename, index=False)
+#    all_scores.to_csv(scoring_filename, index=False)
+mutant = find_mutations(target_seq, all_scores['mutated_sequence'])
+all_scores.insert(0, 'mutant', mutant)
+all_score.to_csv(args.output_scores_folder + '.csv', index=False)
 
 if __name__ == '__main__':
     main()
